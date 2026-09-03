@@ -87,3 +87,11 @@ It also expects fiscal-2027 capital expenditures to exceed fiscal-2026 capital e
 The filing supports continued research because growth, profitability, and cash generation were strong; however, it does not yet support initiating because gross margin declined, H20/export restrictions produced a large charge, revenue is concentrated, and future demand depends on customers’ infrastructure capacity and capital spending. It is not a do-not-buy conclusion because the reported business performance remains strong. [Source: NVIDIA Form 10-K, Item 7—MD&A, pp. 36–43]
 
 I would change this call if subsequent filings show that Data Center and Compute & Networking growth remains durable while gross margin and cash conversion stabilize despite export restrictions, customer concentration, and elevated infrastructure commitments. [Source: NVIDIA Form 10-K, Item 7—MD&A, pp. 36–43]
+
+---
+
+This report was written for FIN 43900 (AI Finance Applications, Purdue) as a learning exercise. It is not investment research and it is not financial advice.
+
+AI assistance: drafted with Codex, resumed from my Lab 03 session; sources gathered and verified by me; the judgments are mine.
+
+Any remaining errors are my own.
