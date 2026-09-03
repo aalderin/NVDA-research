@@ -1,6 +1,6 @@
 # Sources — NVIDIA Company Research Report
 
-This file lists the source cited in [project-1-company-research-report.md](project-1-company-research-report.md).
+This file lists the source cited in [NVDA_2026-09-03_report.md](NVDA_2026-09-03_report.md).
 
 ## Primary source
 
