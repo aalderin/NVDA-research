@@ -213,44 +213,46 @@ $$\text{P/E Multiple} = \frac{\text{Market Price per Share}}{\text{Diluted EPS}}
 
 ### A. By-Hand Peer Multiple Verification
 Checking **Broadcom Inc. (AVGO)** by hand using verified Form 10-K inputs:
-* **Market Price ($P$):** **$348.79** *(September 17, 2026 at 1:50 PM EDT)*
-* **Annual Reported GAAP Diluted EPS ($E$):** **$4.77** *(FY2025 Form 10-K, p. 68)*
-$$\text{P/E Multiple} = \frac{\$348.79}{\$4.77} = \mathbf{73.1215932914\dots \to 73.121593x}$$
+* **Market Price ($P$):** \$348.79 *(September 17, 2026 at 1:50 PM EDT)*
+* **Annual Reported GAAP Diluted EPS ($E$):** \$4.77 *(FY2025 Form 10-K, p. 68)*
 
-*(Cross-check for AMD: $\frac{\$547.30}{\$2.65} = \mathbf{206.5283018868\dots \to 206.528302x}$)*
+$$\text{P/E Multiple} = \frac{348.79}{4.77} = 73.1215932914\dots \approx \mathbf{73.121593x}$$
+
+*(Cross-check for AMD: $\frac{547.30}{2.65} = 206.5283018868\dots \approx \mathbf{206.528302x}$)*
 
 ---
 
 ### B. Prediction and Calculator Verification of Peer Removal
 * **Removed Peer Candidate:** **Advanced Micro Devices (AMD)**
-* **Prediction:** Removing AMD (the higher-multiple peer at $206.53x$) eliminates the upper anchor pulling the 2-peer median multiple ($139.82x$) upward. The remaining peer multiple collapses to Broadcom's standalone multiple ($73.12x$), causing NVIDIA's implied share price to **fall sharply** from the baseline median of **$685.14** down to **$358.30** (a drop of over $326 per share).
-* **Leave-One-Out Calculator Result (`pe_comps.py`):**
-  * Remaining Peer: Broadcom Inc. (`AVGO`) [1 remaining]
-  * Remaining Implied Price: **$358.30**
-  * Exact Dollar Change: **-$326.85**
+* **Prediction:** Removing AMD (the higher-multiple peer at 206.53x) eliminates the upper anchor pulling the 2-peer median multiple (139.82x) upward. The remaining peer multiple collapses to Broadcom's standalone multiple (73.12x), causing NVIDIA's implied share price to **fall sharply** from the baseline median of **\$685.14** down to **\$358.30** (a drop of over \$326 per share).
+* **Leave-One-Out Calculator Result ([`pe_comps.py`](pe_comps.py)):**
+  * **Remaining Peer:** Broadcom Inc. (`AVGO`) [1 remaining]
+  * **Remaining Implied Price:** **\$358.30**
+  * **Exact Dollar Change:** **-\$326.85**
   * *Unrounded Arithmetic:*
-    $$\text{Remaining Price} = 73.1215932914 \times \$4.90 = \mathbf{\$358.295807\dots \to \$358.30}$$
-    $$\Delta \text{Price} = \$358.295807 - \$685.142243 = \mathbf{-\$326.846436\dots \to -\$326.85}$$
+    $$\text{Remaining Price} = 73.1215932914 \times 4.90 = 358.295807\dots \approx \mathbf{\$358.30}$$
+    $$\Delta \text{Price} = 358.295807 - 685.142243 = -326.846436\dots \approx \mathbf{-\$326.85}$$
 
 ---
 
 ### C. Methodological Rules: Inconvenient Peers & Boundary Conditions
 1. **Peer Retention Discipline (No Excluding Inconvenient Peers):**  
-   AMD’s high multiple ($206.53x$) yields an extreme implied target price ($1,011.99). However, because AMD meets all business model and fabless AI compute criteria, an analyst **must never discard an admitted peer simply to achieve a more convenient or intuitive target price**.
+   AMD’s high multiple (206.53x) yields an extreme implied target price (\$1,011.99). However, because AMD meets all business model and fabless AI compute criteria, an analyst **must never discard an admitted peer simply to achieve a more convenient or intuitive target price**.
 2. **Boundary Conditions ($N=1$ and $N=0$):**
-   * **One Remaining Peer ($N=1$):** Yields a **single reference estimate, not a range**, because the minimum, median, and maximum are mathematically identical ($\min = \text{median} = \max = 73.121593x$) with zero statistical dispersion.
+   * **One Remaining Peer ($N=1$):** Yields a **single reference estimate, not a range**, because the minimum, median, and maximum are mathematically identical ($\min = \text{median} = \max = 73.121593\text{x}$) with zero statistical dispersion.
    * **Removing the Sole Usable Peer ($N=0$):** Leaves **no estimate**.
 
 ---
 
 ### D. Specific Sourced Comparability Limitations & Resolution Evidence
 * **Identified Limitations:**
-  1. *AMD Earnings Asymmetry:* AMD’s trailing FY2025 EPS ($2.65) reflects early Instinct MI300 commercialization and client segment recovery, inflating its trailing multiple to 206x. Applying this to NVIDIA's peak \$120B net income overstates valuation.
+  1. *AMD Earnings Asymmetry:* AMD’s trailing FY2025 EPS (\$2.65) reflects early Instinct MI300 commercialization and client segment recovery, inflating its trailing multiple to 206x. Applying this to NVIDIA's peak \$120B net income overstates valuation.
   2. *Broadcom Software Conglomerate Mix:* Broadcom's 73x multiple reflects high recurring VMware software revenue rather than pure hardware platform economics.
 * **Evidence to Resolve Limitations:**  
   Review the next two Form 10-Q filings for AMD and Broadcom to assess:
   * AMD's Data Center GPU revenue acceleration to determine whether expanding forward earnings normalize its P/E multiple into the 40x–50x range.
   * Broadcom's semiconductor vs. VMware software revenue breakdown to isolate pure-play AI semiconductor multiples.
+
 
 ---
 
