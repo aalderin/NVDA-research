@@ -216,9 +216,9 @@ Checking **Broadcom Inc. (AVGO)** by hand using verified Form 10-K inputs:
 * **Market Price ($P$):** \$348.79 *(September 17, 2026 at 1:50 PM EDT)*
 * **Annual Reported GAAP Diluted EPS ($E$):** \$4.77 *(FY2025 Form 10-K, p. 68)*
 
-$$\text{P/E Multiple} = \frac{348.79}{4.77} = 73.1215932914\dots \approx \mathbf{73.121593x}$$
+$$\text{P/E Multiple} = \frac{348.79}{4.77} = 73.1215932914\dots \to \mathbf{73.121593x}$$
 
-*(Cross-check for AMD: $\frac{547.30}{2.65} = 206.5283018868\dots \approx \mathbf{206.528302x}$)*
+* **Cross-Check for AMD:** $\frac{547.30}{2.65} = 206.5283018868\dots \to \mathbf{206.528302x}$
 
 ---
 
@@ -229,9 +229,10 @@ $$\text{P/E Multiple} = \frac{348.79}{4.77} = 73.1215932914\dots \approx \mathbf
   * **Remaining Peer:** Broadcom Inc. (`AVGO`) [1 remaining]
   * **Remaining Implied Price:** **\$358.30**
   * **Exact Dollar Change:** **-\$326.85**
-  * *Unrounded Arithmetic:*
-    $$\text{Remaining Price} = 73.1215932914 \times 4.90 = 358.295807\dots \approx \mathbf{\$358.30}$$
-    $$\Delta \text{Price} = 358.295807 - 685.142243 = -326.846436\dots \approx \mathbf{-\$326.85}$$
+  * **Unrounded Arithmetic:**
+    * *Remaining Price:* $73.1215932914 \times 4.90 = 358.295807\dots \to \mathbf{\$358.30}$
+    * *Dollar Change vs. Baseline:* $358.295807 - 685.142243 = -326.846436\dots \to \mathbf{-\$326.85}$
+
 
 ---
 
