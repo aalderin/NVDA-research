@@ -8,30 +8,32 @@ import statistics
 from typing import Any, Dict, List, Optional
 
 # ==============================================================================
-# EDITABLE INPUTS (December 31, 2024 / FY2024 GAAP Diluted Data)
+# EDITABLE INPUTS (NVIDIA & Qualified Peers as of September 17, 2026 1:50 PM EDT)
 # ==============================================================================
 
 TARGET: Dict[str, Any] = {
-    "name": "Asbury Automotive",
-    "ticker": "ABG",
-    "price": 243.03,
-    "diluted_eps": 21.50,
+    "name": "NVIDIA Corporation",
+    "ticker": "NVDA",
+    "price": 219.35,
+    "diluted_eps": 4.90,  # FY2026 GAAP diluted EPS from Form 10-K
 }
 
+# Only peers marked 'QUALIFY' or 'USE' are entered into the calculation
 PEERS: List[Dict[str, Any]] = [
     {
-        "name": "AutoNation",
-        "ticker": "AN",
-        "price": 169.84,
-        "diluted_eps": 16.92,
+        "name": "Advanced Micro Devices",
+        "ticker": "AMD",
+        "price": 547.30,
+        "diluted_eps": 2.65,  # FY2025 GAAP diluted EPS from Form 10-K (QUALIFY & USE)
     },
     {
-        "name": "Group 1 Automotive",
-        "ticker": "GPI",
-        "price": 421.48,
-        "diluted_eps": 36.81,
+        "name": "Broadcom Inc.",
+        "ticker": "AVGO",
+        "price": 348.79,
+        "diluted_eps": 4.77,  # FY2025 GAAP diluted EPS from Form 10-K (QUALIFY & USE)
     },
 ]
+
 
 # ==============================================================================
 # CALCULATION & VALUATION ENGINE
