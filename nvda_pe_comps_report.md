@@ -230,8 +230,8 @@ $$\text{P/E Multiple} = \frac{348.79}{4.77} = 73.1215932914\dots \to \mathbf{73.
   * **Remaining Implied Price:** **\$358.30**
   * **Exact Dollar Change:** **-\$326.85**
   * **Unrounded Arithmetic:**
-    * *Remaining Price:* $73.1215932914 \times 4.90 = 358.295807\dots \to \mathbf{\$358.30}$
-    * *Dollar Change vs. Baseline:* $358.295807 - 685.142243 = -326.846436\dots \to \mathbf{-\$326.85}$
+    * *Remaining Price:* `73.1215932914 × $4.90` = **\$358.295807...** $\to$ **\$358.30**
+    * *Dollar Change vs. Baseline:* `\$358.295807 − \$685.142243` = **-\$326.846436...** $\to$ **-\$326.85**
 
 
 ---
