@@ -40,6 +40,9 @@ ASSUMPTION TABLE
   10.0% cost of equity; 2.5% terminal growth          judgment   Valuation inputs retained as explicit base-case choices, not company guidance.
 
 Partner Question / My Answer: The 92.0 inventory days equal average FY2025-FY2026 inventory of $15.742B divided by FY2026 cost of revenue of $62.475B, multiplied by 365. They would change with demand and supply planning, product mix and production lead times, inventory purchases, write-downs, or cost-of-revenue growth.
+
+My Attack for Partner (Apple): Why is the capital spending 3.0, and how would it change?
+Partner Answer: It would change if there were a sustained shift in Apple's capital-investment needs.
 =============================================================================
 """
 
