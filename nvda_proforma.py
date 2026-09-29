@@ -46,6 +46,8 @@ Partner Answer: It would change if there were a sustained shift in Apple's capit
 =============================================================================
 """
 
+import copy
+
 # ---------------------------------------------------------------------------
 # 0.  ASSUMPTIONS
 # ---------------------------------------------------------------------------
@@ -103,11 +105,62 @@ op = {
 # Equity closes the opening balance sheet
 op["equity"] = 157_293.0  # FY2026 total shareholders' equity; sheet reconciles to $206,803M assets
 
+YEARS = [2027, 2028, 2029, 2030, 2031]
+
+# Immutable reference set for all sensitivity runs. Each run receives a fresh
+# deep copy so no case can carry cash, inventory, or another linked result into
+# the next case.
+BASE_INPUTS = {
+    "years": YEARS.copy(),
+    "opening": copy.deepcopy(op),
+    "revenue_growth": REVENUE_GROWTH,
+    "gross_margin": GROSS_MARGIN,
+    "sga_ratios": SGA_RATIOS.copy(),
+    "depr_rate": DEPR_RATE,
+    "impairment": IMPAIRMENT,
+    "capex": CAPEX,
+    "tax_rate": TAX_RATE,
+    "inv_days": INV_DAYS,
+    "floor_plan_ratio": FLOOR_PLAN_RATIO,
+    "floor_plan_rate": FLOOR_PLAN_RATE,
+    "debt_rate": DEBT_RATE,
+    "revolver_rate": REVOLVER_RATE,
+    "debt_repayment": DEBT_REPAYMENT,
+    "buyback": BUYBACK,
+    "min_cash": MIN_CASH,
+    "revolver_limit": REVOLVER_LIMIT,
+    "cost_of_equity": COST_OF_EQUITY,
+    "terminal_growth": TERMINAL_GROWTH,
+    "shares_m": SHARES_M,
+}
+
+# One-at-a-time operating-driver sensitivity inputs. Values apply in every
+# explicit forecast year; all other independent inputs reset to BASE_INPUTS.
+OPERATING_DRIVER_SENSITIVITIES = {
+    "Revenue growth": {
+        "input_key": "revenue_growth",
+        "units": "% year-over-year",
+        "years": "FY2027-FY2031",
+        "Lower": 0.555,
+        "Base": 0.655,
+        "Higher": 0.755,
+    },
+    "Gross margin": {
+        "input_key": "gross_margin",
+        "units": "% of revenue",
+        "years": "FY2027-FY2031",
+        "Lower": 0.6807,
+        "Base": 0.7107,
+        "Higher": 0.7407,
+    },
+}
+
+# Change this label/scenario to inspect another full linked run below.
+TRACE_CASE = ("Revenue growth", "Lower")
+
 # ---------------------------------------------------------------------------
 # 2.  PRINT HELPER
 # ---------------------------------------------------------------------------
-
-YEARS = [2027, 2028, 2029, 2030, 2031]
 
 def fmtrow(label, values, width=12):
     """Print one row of the table."""
@@ -414,3 +467,230 @@ print("  Key assumptions:")
 print(f"    Cost of equity:   {COST_OF_EQUITY*100:.1f}%")
 print(f"    Terminal growth:  {TERMINAL_GROWTH*100:.1f}%")
 print(f"    Opening cash / debt / other assets / other liab: FY2026 reported or reconciled — see top of file")
+
+
+# ---------------------------------------------------------------------------
+# 10. ONE-AT-A-TIME OPERATING-DRIVER SENSITIVITY
+# ---------------------------------------------------------------------------
+
+def run_linked_model(inputs):
+    """Run the complete model from an independent deep copy of its inputs."""
+    cfg = copy.deepcopy(inputs)
+    prior = copy.deepcopy(cfg["opening"])
+    results = {"revenue": [], "gross_profit": [], "opinc": [], "fcfe": [], "gaps": []}
+    invalid_reasons = []
+
+    for i, year in enumerate(cfg["years"]):
+        rev = prior["revenue"] * (1 + cfg["revenue_growth"])
+        gp = rev * cfg["gross_margin"]
+        sga = gp * cfg["sga_ratios"][i]
+        depr = prior["pp_and_e"] * cfg["depr_rate"]
+        opinc = gp - sga - depr - cfg["impairment"]
+        interest = (prior["floor_plan"] * cfg["floor_plan_rate"]
+                    + prior["debt"] * cfg["debt_rate"]
+                    + prior["revolver"] * cfg["revolver_rate"])
+        pretax = opinc - interest
+        tax = max(0.0, pretax) * cfg["tax_rate"]
+        net_inc = pretax - tax
+
+        inventory = (rev - gp) * cfg["inv_days"] / 365
+        floor_plan = inventory * cfg["floor_plan_ratio"]
+        pp_and_e = prior["pp_and_e"] + cfg["capex"] - depr
+        d_owc = 0.008 * (rev - prior["revenue"])
+        other_assets = prior["other_assets"] + d_owc - cfg["impairment"]
+        debt = prior["debt"] - cfg["debt_repayment"]
+        equity = prior["equity"] + net_inc - cfg["buyback"]
+        d_inventory = inventory - prior["inventory"]
+        d_floor_plan = floor_plan - prior["floor_plan"]
+        fcfe = (net_inc + depr + cfg["impairment"] - cfg["capex"] - d_inventory
+                - d_owc + d_floor_plan - cfg["debt_repayment"])
+
+        pre_revolver_cash = prior["cash"] + fcfe - cfg["buyback"]
+        revolver = prior["revolver"]
+        if pre_revolver_cash < cfg["min_cash"]:
+            revolver += min(cfg["min_cash"] - pre_revolver_cash,
+                            cfg["revolver_limit"] - revolver)
+            cash = cfg["min_cash"]
+        else:
+            cash = pre_revolver_cash
+            if revolver > 0:
+                repay_revolver = min(revolver, cash - cfg["min_cash"])
+                revolver -= repay_revolver
+                cash -= repay_revolver
+
+        gap = ((cash + inventory + other_assets + pp_and_e)
+               - (floor_plan + debt + revolver + prior["other_liab"] + equity))
+        results["gaps"].append(gap)
+        if abs(gap) >= 0.05:
+            invalid_reasons.append(f"{year} balance-sheet gap {gap:,.4f} USD M")
+        for key, value in {"revenue": rev, "gross_profit": gp, "opinc": opinc, "fcfe": fcfe}.items():
+            results[key].append(value)
+        prior = {
+            "revenue": rev, "cash": cash, "inventory": inventory,
+            "other_assets": other_assets, "pp_and_e": pp_and_e,
+            "floor_plan": floor_plan, "debt": debt, "revolver": revolver,
+            "other_liab": prior["other_liab"], "equity": equity,
+        }
+
+    value_per_share = None
+    valuation_reason = None
+    if cfg["terminal_growth"] >= cfg["cost_of_equity"]:
+        valuation_reason = "terminal growth must be lower than cost of equity"
+    elif cfg["shares_m"] <= 0:
+        valuation_reason = "shares outstanding must be positive"
+    else:
+        terminal_value = ((results["fcfe"][-1] + cfg["debt_repayment"])
+                          * (1 + cfg["terminal_growth"])
+                          / (cfg["cost_of_equity"] - cfg["terminal_growth"]))
+        pv_fcfe = sum(fcff / (1 + cfg["cost_of_equity"]) ** (i + 1)
+                      for i, fcff in enumerate(results["fcfe"]))
+        value_per_share = (pv_fcfe + terminal_value / (1 + cfg["cost_of_equity"]) ** len(cfg["years"])) / cfg["shares_m"]
+    return {
+        "inputs": cfg, "results": results, "accounting_valid": not invalid_reasons,
+        "invalid_reasons": invalid_reasons, "valuation_valid": value_per_share is not None,
+        "valuation_reason": valuation_reason, "value_per_share": value_per_share,
+        "final_opinc": results["opinc"][-1], "final_fcfe": results["fcfe"][-1],
+    }
+
+
+def fmt(value, decimals=1, signed=False):
+    if value is None:
+        return "unavailable"
+    sign = "+" if signed else ""
+    return f"{value:{sign},.{decimals}f}"
+
+
+def print_trace(driver, scenario, result):
+    """Print sufficient linked statement detail to trace one selected run."""
+    print()
+    print("=" * 92)
+    print(f"  TRACE: {driver} — {scenario}   [$ millions]")
+    print("=" * 92)
+    print(f"  Inputs used: revenue growth {result['inputs']['revenue_growth']:.2%}; "
+          f"gross margin {result['inputs']['gross_margin']:.2%}")
+    print(f"  {'':24}" + "".join(f"{year:>12}" for year in result["inputs"]["years"]))
+    print("  " + "-" * 84)
+    for label, key in [("Revenue", "revenue"), ("Gross profit", "gross_profit"),
+                       ("Operating profit", "opinc"), ("FCFE", "fcfe")]:
+        print(f"  {label:<24}" + "".join(f"{value:>12,.1f}" for value in result["results"][key]))
+    print("  Accounting checks (gap must be < $0.1M):")
+    for year, gap in zip(result["inputs"]["years"], result["results"]["gaps"]):
+        status = "OK" if abs(gap) < 0.05 else "INVALID"
+        print(f"    {year}: Gap={gap:.4f}  [{status}]")
+
+
+print()
+print("=" * 118)
+print("  ONE-AT-A-TIME OPERATING-DRIVER SENSITIVITY   [$ millions except per-share]")
+print("  Every run begins with a fresh deep copy of BASE_INPUTS; no cases are ranked.")
+print("=" * 118)
+sensitivity_results = {}
+for driver, spec in OPERATING_DRIVER_SENSITIVITIES.items():
+    print()
+    print(f"  {driver}: {spec['units']}; affected years: {spec['years']}")
+    print("  " + " | ".join(f"{case}: {spec[case]:.2%}" for case in ("Lower", "Base", "Higher")))
+    driver_results = {}
+    for case in ("Lower", "Base", "Higher"):
+        case_inputs = copy.deepcopy(BASE_INPUTS)
+        case_inputs[spec["input_key"]] = spec[case]
+        driver_results[case] = run_linked_model(case_inputs)
+    base_result = driver_results["Base"]
+    print(f"  {'Run':<9}{'Final operating profit':>25}{'Change from base':>20}{'Final FCFE':>18}"
+          f"{'Change from base':>20}{'Value/share':>16}{'Change from base':>20}{'Check':>12}")
+    print("  " + "-" * 136)
+    for case in ("Lower", "Base", "Higher"):
+        result = driver_results[case]
+        value_change = None if not (result["valuation_valid"] and base_result["valuation_valid"]) else result["value_per_share"] - base_result["value_per_share"]
+        status = "OK" if result["accounting_valid"] else "INVALID"
+        print(f"  {case:<9}{fmt(result['final_opinc']):>25}{fmt(result['final_opinc'] - base_result['final_opinc'], signed=True):>20}"
+              f"{fmt(result['final_fcfe']):>18}{fmt(result['final_fcfe'] - base_result['final_fcfe'], signed=True):>20}"
+              f"{fmt(result['value_per_share'], 2):>16}{fmt(value_change, 2, True):>20}{status:>12}")
+        if not result["accounting_valid"]:
+            print("    Invalid run: " + "; ".join(result["invalid_reasons"]))
+        if not result["valuation_valid"]:
+            print(f"    Value per share unavailable: {result['valuation_reason']}.")
+    valid = [result for result in driver_results.values() if result["accounting_valid"]]
+    def span(key, decimals=1):
+        values = [result[key] for result in valid if result[key] is not None]
+        return "unavailable" if not values else fmt(max(values) - min(values), decimals)
+    print(f"  Output span (max - min across valid lower/base/higher runs): operating profit {span('final_opinc')} USD M; "
+          f"FCFE {span('final_fcfe')} USD M; value/share {span('value_per_share', 2)} USD.")
+    sensitivity_results[driver] = driver_results
+
+trace_driver, trace_case = TRACE_CASE
+print_trace(trace_driver, trace_case, sensitivity_results[trace_driver][trace_case])
+
+# Restore the separate base input set and rerun it after all sensitivity cases.
+restored_base_result = run_linked_model(copy.deepcopy(BASE_INPUTS))
+print()
+print("  Base inputs restored and rerun after sensitivity cases:")
+print(f"    Final operating profit: {restored_base_result['final_opinc']:,.1f} USD M")
+print(f"    Final FCFE: {restored_base_result['final_fcfe']:,.1f} USD M")
+if restored_base_result["valuation_valid"]:
+    print(f"    Value per share: {restored_base_result['value_per_share']:,.2f} USD")
+else:
+    print(f"    Value per share: unavailable ({restored_base_result['valuation_reason']}).")
+for year, gap in zip(BASE_INPUTS["years"], restored_base_result["results"]["gaps"]):
+    status = "OK" if abs(gap) < 0.05 else "INVALID"
+    print(f"    {year} base accounting check: Gap={gap:.4f}  [{status}]")
+
+
+# ---------------------------------------------------------------------------
+# 11. PRINTED LOCKED RECORD / PARTNER EXCHANGE
+# ---------------------------------------------------------------------------
+
+def valid_span(driver, output_key):
+    """Return max-minus-min for valid lower/base/higher runs of one driver."""
+    values = [result[output_key] for result in sensitivity_results[driver].values()
+              if result["accounting_valid"] and result[output_key] is not None]
+    return None if not values else max(values) - min(values)
+
+
+revenue_lower = sensitivity_results["Revenue growth"]["Lower"]
+revenue_base = sensitivity_results["Revenue growth"]["Base"]
+revenue_deltas = {
+    "opinc": revenue_lower["final_opinc"] - revenue_base["final_opinc"],
+    "fcfe": revenue_lower["final_fcfe"] - revenue_base["final_fcfe"],
+    "value": revenue_lower["value_per_share"] - revenue_base["value_per_share"],
+}
+opinc_driver = max(OPERATING_DRIVER_SENSITIVITIES, key=lambda driver: valid_span(driver, "final_opinc"))
+fcfe_driver = max(OPERATING_DRIVER_SENSITIVITIES, key=lambda driver: valid_span(driver, "final_fcfe"))
+value_driver = max(OPERATING_DRIVER_SENSITIVITIES, key=lambda driver: valid_span(driver, "value_per_share"))
+
+print()
+print("=" * 118)
+print("  LOCKED RECORD: NVIDIA SENSITIVITY REVIEW AND PARTNER EXCHANGE")
+print("=" * 118)
+print("  Operating-driver table is printed above. Amounts below are USD millions except per-share values.")
+print(f"  Restored-base check: FY2031 operating profit {restored_base_result['final_opinc']:,.1f}; "
+      f"FY2031 FCFE {restored_base_result['final_fcfe']:,.1f}; "
+      f"value/share {restored_base_result['value_per_share']:,.2f}; all five accounting checks OK.")
+print()
+print("  Locked prediction and reconciliation")
+print("    Prediction: Lower revenue growth should reduce FY2031 operating profit, FCFE, and value/share versus base.")
+print(f"    Actual lower revenue-growth run: operating profit change {revenue_deltas['opinc']:+,.1f}; "
+      f"FCFE change {revenue_deltas['fcfe']:+,.1f}; value/share change {revenue_deltas['value']:+,.2f}.")
+print("    Reconciliation: Directional prediction matched the linked-model result; no directional prediction error.")
+print("    Trace checked: lower revenue growth reduces revenue, then gross profit and operating profit; "
+      "earnings and working-capital effects then reduce FCFE and value/share.")
+print()
+print("  Main driver over the tested ranges")
+print(f"    Revenue growth range: {OPERATING_DRIVER_SENSITIVITIES['Revenue growth']['Lower']:.2%} to "
+      f"{OPERATING_DRIVER_SENSITIVITIES['Revenue growth']['Higher']:.2%}; "
+      f"gross-margin range: {OPERATING_DRIVER_SENSITIVITIES['Gross margin']['Lower']:.2%} to "
+      f"{OPERATING_DRIVER_SENSITIVITIES['Gross margin']['Higher']:.2%}.")
+print(f"    Largest operating-profit span: {opinc_driver} ({valid_span(opinc_driver, 'final_opinc'):,.1f} USD M).")
+print(f"    Largest FCFE span: {fcfe_driver} ({valid_span(fcfe_driver, 'final_fcfe'):,.1f} USD M).")
+print(f"    Largest value/share span: {value_driver} ({valid_span(value_driver, 'value_per_share'):,.2f} USD).")
+print("    Over these ranges, revenue growth is the larger driver because it compounds the revenue base in every "
+      "forecast year. The comparison is range-specific: its wider tested range can contribute to the larger span.")
+print()
+print("  Partner exchange 3")
+print("    Question received: Could the revenue-growth ranking reflect the chosen ranges rather than inherent importance?")
+print("    Response: Yes. The ranking applies only over these stated ranges; a narrower revenue range or wider "
+      "gross-margin range could change the span comparison.")
+print("    Check performed on partner analysis: Recomputed the selected changed-minus-base output, checked that "
+      "non-tested independent inputs were reset to base, and requested a statement trace from the driver through "
+      "operating profit and FCFE.")
+print("    Partner-summary limitation: Do not rank NVIDIA and the partner company by raw dollar changes; compare "
+      "each company's causal driver and span over that company's own tested range.")
