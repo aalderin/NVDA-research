@@ -1,0 +1,92 @@
+===============================================================================
+PROJECT 1 — UNIFORM SEVEN-PART SUBMISSION BUNDLE CHECKLIST
+Target Company: NVIDIA Corporation (NASDAQ: NVDA)
+Course: FIN 43900 — AI and Finance (Fall 2026)
+Repository: https://github.com/aalderin/NVDA-research 
+===============================================================================
+
+-------------------------------------------------------------------------------
+1. EDITION A CHECKPOINT (Unchanged Baseline)
+-------------------------------------------------------------------------------
+[X] File: project-1-edition-a.md
+    Description: Week 2 baseline admission memo documenting research target selection 
+                 (NVIDIA), initial thesis, evidence catalog, EV-to-equity bridge, 
+                 and research plan created prior to valuation-specific AI assistance.
+    Status: COMPLETE (Submitted to designated Brightspace Edition A gate).
+
+-------------------------------------------------------------------------------
+2. EDITION B REPOSITORY (Full Application & Models)
+-------------------------------------------------------------------------------
+[X] Entry Script: run.ps1
+    Description: PowerShell script executing all model components sequentially 
+                 with automated exit-code verification.
+[X] 3-Statement Pro-Forma: nvda_proforma.py
+    Description: 5-year integrated forecast model (FY2027-FY2031) with automated 
+                 balance-sheet articulation checks (assert_balanced()), FCFE engine, 
+                 and operating driver sensitivity runs.
+[X] FCFF DCF Engine: dcf.py
+    Description: Standalone FCFF DCF engine with 10% WACC, 2.5% terminal growth, 
+                 WACC-growth sensitivity matrix, and reverse DCF solver.
+[X] Peer Comps Model: pe_comps.py & nvda_pe_comps_report.md
+    Description: Comparable company valuation (P/E and EV multiples) against AMD 
+                 and Broadcom with leave-one-out sensitivity.
+[X] Peer Policy: nvda_peer_policy.md
+    Description: Peer selection policy established prior to multiple calculation.
+[X] Documentation: README.md
+    Description: Complete grader guide documenting execution, file architecture, 
+                 accounting rules, sensitivity findings, and SEC source citations.
+    Status: COMPLETE (Standard library Python 3.x only; fully runnable locally).
+
+-------------------------------------------------------------------------------
+3. VIDEO 1 — RESEARCH EVOLUTION (Source Map & Evidence)
+-------------------------------------------------------------------------------
+[X] File: FIN439_Project1_Vid1.mp4
+    Description: 3-5 minute video walking through source discovery, Form 10-K SEC 
+                 filing evidence (Accession 0001045810-26-000021), historical 
+                 normalizations, and driver selection for NVIDIA.
+    Status: COMPLETE.
+
+-------------------------------------------------------------------------------
+4. VIDEO 2 — CODE & VALIDATION (Model Run & Articulation)
+-------------------------------------------------------------------------------
+[X] File: FIN439_Project1_Vid2.mp4
+    Description: 3-5 minute video demonstrating execution of run.ps1, verifying 
+                 the assert_balanced() balance-sheet check (gap < $0.05M), 
+                 and reviewing the locked changed-input test.
+    Status: COMPLETE.
+
+-------------------------------------------------------------------------------
+5. ANALYST MEMO / SLIDE DECK
+-------------------------------------------------------------------------------
+[X] Memo File: NVDA_2026-09-03_report.md
+[X] Slide Deck: Nvidia Executive Summary.pptx
+    Description: Comprehensive analyst memo and executive presentation deck 
+                 presenting the Watch-Defer recommendation, valuation range 
+                 ($119.17 - $613.71 / share), material conditions, and quarterly 
+                 10-Q monitoring triggers.
+    Status: COMPLETE.
+
+-------------------------------------------------------------------------------
+6. VIDEO 3 — COMMITTEE DEFENSE (Presentation & Q&A)
+-------------------------------------------------------------------------------
+[X] File: FIN439_Project1_Vid3.mp4
+    Description: 3-minute pitch presenting the Watch-Defer recommendation to the 
+                 investment committee and answering the 3 defense questions from 
+                 partner_questions.md (10-K sources, causal chain, range-conditional ranking).
+    Status: COMPLETE.
+
+-------------------------------------------------------------------------------
+7. FROZEN VALIDATION & AI-USE RECORD
+-------------------------------------------------------------------------------
+[X] Peer Review & Defense Record: partner_questions.md
+    Description: Complete record of presenter defense Q&A on NVIDIA, reviewer 
+                 audit record on UiPath, and post-feedback action items.
+[X] Locked Changed-Input Record: Locked_Changed_Input_Record.md
+    Description: Precommitted directional test (Inventory Days blowout test) 
+                 with human AI-off prediction, actual statement trace, and 
+                 articulation verification.
+[X] Source Catalog: sources.md
+    Description: Traced factual inputs mapped to SEC Form 10-K disclosures.
+    Status: COMPLETE.
+===============================================================================
+

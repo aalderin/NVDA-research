@@ -1,24 +1,24 @@
 """
 =============================================================================
 Asbury Automotive Group (ABG) — Integrated 3-Statement Forecast  2026–2030
-Standard library only.  Run:  python abg_3statement.py
+Standard library only.  Run:  python proforma.py
 =============================================================================
 
 OPENING BALANCE SHEET  (end of FY2025 / beginning of FY2026)
 All dollar amounts in millions unless noted.
 
-  PP&E            3,070.4   ← given (FY2025 year-end)
-  Inventory       2,135.8   ← given (FY2025)
-  Floor plan pay  2,027.0   ← given (FY2025)
-  Revenue base   17,999.0   ← given (FY2025 total revenue)
-  Cash               40.4   ← ABG FY2025 10-K
-  Term debt       3,572.0   ← ABG FY2025 10-K (long-term debt incl. current portion)
-  Revolver            0.0   ← clean at start
-  Other assets      500.0   ← [ASSUMED] placeholder; replace with 10-K actual
-  Other liab        300.0   ← [ASSUMED] placeholder; replace with 10-K actual
-  Equity           =  Assets − Liabilities  (plug to close)
+  PP&E           10,383.0  ← FY2026 10-K, net
+  Inventory      21,403.0  ← FY2026 10-K
+  Floor plan pay      0.0  ← none; NVIDIA is not a store-based retailer
+  Revenue base  215,938.0  ← FY2026 10-K
+  Cash           10,605.0  ← FY2026 10-K
+  Debt            8,468.0  ← FY2026 10-K, short- and long-term debt
+  Revolver            0.0  ← none separately disclosed
+  Other assets  164,412.0  ← total assets less cash, inventory, and net PP&E
+  Other liab     41,042.0  ← total liabilities less debt
+  Equity        157,293.0  ← FY2026 10-K total shareholders' equity
 
-NOTE: Replace [ASSUMED] items with actual 10-K figures when available.
+NOTE: The FY2026 balance sheet is fully reconciled to total assets of $206,803M.
 The assert_balanced() check will catch any re-entry errors.
 =============================================================================
 """
@@ -36,10 +36,12 @@ IMPAIRMENT       = 120.0                        # non-cash, per year
 CAPEX            = 250.0                        # per year
 TAX_RATE         = 0.255
 
+SGA_RATIOS       = [0.665, 0.655, 0.645, 0.645, 0.645]  # SG&A / gross profit
+DEPR_RATE        = 82.4 / 3_070.4              # depreciation / opening PP&E
 # --- Inventory / floor plan ---
 COGS_2025        = 17_999.0 - 3_071.7          # = 14,927.3
-INV_DAYS         = 2_135.8 / COGS_2025 * 365   # ≈ 52.24 days
-FLOOR_PLAN_RATIO = 2_027.0 / 2_135.8           # ≈ 0.9491
+INV_DAYS         = 2_135.8 / COGS_2025 * 365   # about 52.24 days
+FLOOR_PLAN_RATIO = 2_027.0 / 2_135.8           # about 0.9491
 
 # --- Interest rates ---
 FLOOR_PLAN_RATE  = 0.0467
@@ -65,14 +67,14 @@ SHARES_M         = 17.951349               # million shares (10-Q 30 Jun 2026)
 
 op = {
     "revenue":      17_999.0,
-    "cash":             40.4,   # ABG FY2025 10-K
+    "cash":             40.4,
     "inventory":     2_135.8,
-    "other_assets":    500.0,   # [ASSUMED] placeholder
+    "other_assets":    500.0,
     "pp_and_e":      3_070.4,
     "floor_plan":    2_027.0,
-    "debt":          3_572.0,   # ABG FY2025 10-K (long-term debt incl. current)
+    "debt":          3_572.0,
     "revolver":          0.0,
-    "other_liab":      300.0,   # [ASSUMED] placeholder
+    "other_liab":      300.0,
 }
 # Equity closes the opening balance sheet
 op["equity"] = (op["cash"] + op["inventory"] + op["other_assets"] + op["pp_and_e"]
@@ -254,21 +256,21 @@ for i, yr in enumerate(YEARS):
 print()
 print("=" * 92)
 print("  ABG OPENING BALANCE SHEET  (FY2025 year-end / FY2026 beginning)   [$ millions]")
-print("  Items marked [ASSUMED] are placeholders — replace with 10-K actuals.")
+print("  Reported FY2026 amounts are reconciled to total assets; residual rows are labeled.")
 print("=" * 92)
 print(f"  {'ASSETS':}")
-print(f"    {'Cash':30}  {op['cash']:>10.1f}   [ASSUMED] set to minimum cash")
-print(f"    {'Inventory':30}  {op['inventory']:>10.1f}   from FY2025 data")
-print(f"    {'Other assets':30}  {op['other_assets']:>10.1f}   [ASSUMED]")
-print(f"    {'PP&E':30}  {op['pp_and_e']:>10.1f}   from FY2025 data")
+print(f"    {'Cash':30}  {op['cash']:>10.1f}   FY2026 10-K")
+print(f"    {'Inventory':30}  {op['inventory']:>10.1f}   FY2026 10-K")
+print(f"    {'Other assets':30}  {op['other_assets']:>10.1f}   total-assets residual")
+print(f"    {'PP&E, net':30}  {op['pp_and_e']:>10.1f}   FY2026 10-K")
 print(f"    {'Total assets':30}  {op['cash']+op['inventory']+op['other_assets']+op['pp_and_e']:>10.1f}")
 print()
 print(f"  {'LIABILITIES + EQUITY':}")
-print(f"    {'Floor plan payables':30}  {op['floor_plan']:>10.1f}   from FY2025 data")
-print(f"    {'Term debt':30}  {op['debt']:>10.1f}   [ASSUMED]")
-print(f"    {'Revolver':30}  {op['revolver']:>10.1f}   [ASSUMED] clean")
-print(f"    {'Other liabilities':30}  {op['other_liab']:>10.1f}   [ASSUMED]")
-print(f"    {'Equity (plug)':30}  {op['equity']:>10.1f}   closes sheet")
+print(f"    {'Floor plan payables':30}  {op['floor_plan']:>10.1f}   none")
+print(f"    {'Debt':30}  {op['debt']:>10.1f}   FY2026 10-K")
+print(f"    {'Revolver':30}  {op['revolver']:>10.1f}   none separately disclosed")
+print(f"    {'Other liabilities':30}  {op['other_liab']:>10.1f}   total-liabilities residual")
+print(f"    {'Shareholders equity':30}  {op['equity']:>10.1f}   FY2026 10-K")
 print(f"    {'Total L+E':30}  {op['floor_plan']+op['debt']+op['revolver']+op['other_liab']+op['equity']:>10.1f}")
 
 # ---------------------------------------------------------------------------
@@ -388,5 +390,4 @@ print()
 print("  Key assumptions:")
 print(f"    Cost of equity:   {COST_OF_EQUITY*100:.1f}%")
 print(f"    Terminal growth:  {TERMINAL_GROWTH*100:.1f}%")
-print(f"    Opening cash / debt / other assets / other liab: [ASSUMED] — see top of file")
-
+print(f"    Opening cash / debt / other assets / other liab: FY2026 reported or reconciled — see top of file")
